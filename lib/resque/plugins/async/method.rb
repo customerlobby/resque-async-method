@@ -19,14 +19,26 @@ module Resque::Plugins::Async::Method
         my_klass       = Resque::Plugins::Async::Worker
         my_klass.queue = opts[:queue] ||
                          send(:class).name.underscore.pluralize
-
-        Resque.enqueue(
-          my_klass,
-          send(:class).name,
-          send(:id),
-          :"sync_#{method_name}",
-          *args
-        )
+                         
+        
+        if opts[:delay].present?
+          Resque.enqueue_in(
+            opts[:delay],
+            my_klass,
+            send(:class).name,
+            send(:id),
+            :"sync_#{method_name}",
+            *args            
+          )
+        else
+          Resque.enqueue(
+            my_klass,
+            send(:class).name,
+            send(:id),
+            :"sync_#{method_name}",
+            *args
+          )          
+        end                   
       end
     end
   end
